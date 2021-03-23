@@ -6,11 +6,16 @@ def show_image(img):
     image = img.reshape((28, 28))
     plt.imshow(image, 'gray')
 
+#our activation function
+def sigmoid(x):
+  return 1 / (1 + np.exp(-x))
 
+
+#calculate output of nn
 def calculate_output(input_neurons,weights,biases):
-    layer1_neurons = weights[0]*input_neurons+biases[0]
-    layer2_neurons = weights[1]*layer1_neurons+biases[1]
-    output_neurons = weights[2]*layer2_neurons+biases[2]
+    layer1_neurons = sigmoid(weights[0]*input_neurons+biases[0])
+    layer2_neurons = sigmoid(weights[1]*layer1_neurons+biases[1])
+    output_neurons = sigmoid(weights[2]*layer2_neurons+biases[2])
     print(output_neurons)
 
 
