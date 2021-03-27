@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 
 # A function to plot images
 def show_image(img):
@@ -10,13 +11,28 @@ def show_image(img):
 def sigmoid(x):
   return 1 / (1 + np.exp(-x))
 
-
 #calculate output of nn
 def calculate_output(input_neurons,weights,biases):
     layer1_neurons = sigmoid(weights[0]*input_neurons+biases[0])
     layer2_neurons = sigmoid(weights[1]*layer1_neurons+biases[1])
     output_neurons = sigmoid(weights[2]*layer2_neurons+biases[2])
-    print(output_neurons)
+    return np.where(output_neurons==np.amax(output_neurons))[0][0]
+
+def checkaccuracy(train_set,weights,biases,count):
+    correct = 0
+    wrong = 0
+    for i in range(100):
+        answer=calculate_output(train_set[i][0],weights,biases)
+        if(answer==np.where(train_set[i][1]==1)[0][0]):
+            correct+=1
+        else:
+            wrong+=1
+    print(correct/count)
+
+
+def train_with_SGD(learning_rate,number_of_epoches,batch_size,train_set,weights,biases):
+    for ep in range(number_of_epoches):
+        random.shuffle(train_set)
 
 
 # Reading The Train Set
@@ -66,7 +82,7 @@ for n in range(num_of_train_images):
 
 
 # Plotting an image
-# show_image(train_set[0][1])
+# show_image(train_set[0][0])
 # plt.show()
 
 weights = []
@@ -78,6 +94,10 @@ biases.append(np.zeros(16).reshape(16,1)) #zero bias for layer 1
 biases.append(np.zeros(16).reshape(16,1)) #zero bias for layer 2
 biases.append(np.zeros(10).reshape(10,1)) #zero bias for layer 3
 
+learning_rate=1
+number_of_epoches=20
+batch_size=10
 
-calculate_output(train_set[0][0],weights,biases)
+
+train_with_SGD(learning_rate,number_of_epoches,batch_size,train_set,weights,biases)
 
