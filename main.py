@@ -107,7 +107,7 @@ def train_with_SGD(learning_rate,number_of_epoches,batch_size,train_set,weights,
 def train_with_SGD_vectorized(learning_rate,number_of_epoches,batch_size,train_set,weights,biases):
     cost_array=[]
     for ep in range(number_of_epoches):
-        # random.shuffle(train_set)
+        random.shuffle(train_set)
         for index in range(0,len(train_set),batch_size):
             batch=train_set[index:index+10]
             grad_w = []
@@ -156,6 +156,14 @@ def train_with_SGD_vectorized(learning_rate,number_of_epoches,batch_size,train_s
 
 
 
+def adversarialattack(test_set):
+    for img in test_set:
+        temp=img[0].reshape((28,28))
+        temp=np.roll(temp,4)
+        img[0]=temp.reshape((784,1))
+
+
+
 
 # Reading The Train Set
 train_images_file = open('train-images.idx3-ubyte', 'rb')
@@ -165,7 +173,6 @@ train_images_file.seek(16)
 
 train_labels_file = open('train-labels.idx1-ubyte', 'rb')
 train_labels_file.seek(8)
-
 train_set = []
 for n in range(num_of_train_images):
     image = np.zeros((784, 1))
@@ -193,13 +200,13 @@ test_set = []
 for n in range(num_of_test_images):
     image = np.zeros((784, 1))
     for i in range(784):
-        image[i, 0] = int.from_bytes(train_images_file.read(1), 'big') / 256
+        image[i] = int.from_bytes(test_images_file.read(1), 'big') / 256
     
-    label_value = int.from_bytes(train_labels_file.read(1), 'big')
+    label_value = int.from_bytes(test_labels_file.read(1), 'big')
     label = np.zeros(10)
     label[label_value] = 1
-
-    test_set.append((image, label))
+    
+    test_set.append([image, label])
 
 
 
@@ -216,10 +223,12 @@ learning_rate=1
 number_of_epoches=5
 batch_size=50
 
-
 train_with_SGD_vectorized(learning_rate,number_of_epoches,batch_size,train_set,weights,biases)
 
 print("Accuracy for train set:")
 checkaccuracy(train_set,weights,biases,num_of_train_images)
 print("Accuracy for test set:")
-checkaccuracy(train_set,weights,biases,num_of_test_images)
+checkaccuracy(test_set,weights,biases,num_of_test_images)
+print("Accuracy for test set after adversarial attack:")
+adversarialattack(test_set)
+checkaccuracy(test_set,weights,biases,num_of_test_images)
