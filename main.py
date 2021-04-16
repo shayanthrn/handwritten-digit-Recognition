@@ -25,7 +25,7 @@ def calculate_output(input_neurons,weights,biases):
 def checkaccuracy(train_set,weights,biases,count):
     correct = 0
     wrong = 0
-    for i in range(100):
+    for i in range(count):
         answer=calculate_output(train_set[i][0],weights,biases)[0]
         if(answer==np.where(train_set[i][1]==1)[0][0]):
             correct+=1
@@ -108,7 +108,7 @@ def train_with_SGD_vectorized(learning_rate,number_of_epoches,batch_size,train_s
     cost_array=[]
     for ep in range(number_of_epoches):
         # random.shuffle(train_set)
-        for index in range(0,100,batch_size):
+        for index in range(0,len(train_set),batch_size):
             batch=train_set[index:index+10]
             grad_w = []
             grad_b = []
@@ -148,7 +148,7 @@ def train_with_SGD_vectorized(learning_rate,number_of_epoches,batch_size,train_s
             labels=img[1].reshape(10,1)
             for j in range(10):
                 cost+=(nodes['LO'][j,0]-labels[j,0])**2
-        cost/=100
+        cost/=len(train_set)
         cost_array.append(cost)
     plt.plot([i for i in range(number_of_epoches)],cost_array)
     plt.show()
@@ -167,7 +167,6 @@ train_labels_file = open('train-labels.idx1-ubyte', 'rb')
 train_labels_file.seek(8)
 
 train_set = []
-num_of_train_images=100
 for n in range(num_of_train_images):
     image = np.zeros((784, 1))
     for i in range(784):
@@ -180,32 +179,29 @@ for n in range(num_of_train_images):
     train_set.append((image, label))
 
 
-# # Reading The Test Set
-# test_images_file = open('t10k-images.idx3-ubyte', 'rb')
-# test_images_file.seek(4)
+# Reading The Test Set
+test_images_file = open('t10k-images.idx3-ubyte', 'rb')
+test_images_file.seek(4)
 
-# test_labels_file = open('t10k-labels.idx1-ubyte', 'rb')
-# test_labels_file.seek(8)
+test_labels_file = open('t10k-labels.idx1-ubyte', 'rb')
+test_labels_file.seek(8)
 
-# num_of_test_images = int.from_bytes(test_images_file.read(4), 'big')
-# test_images_file.seek(16)
+num_of_test_images = int.from_bytes(test_images_file.read(4), 'big')
+test_images_file.seek(16)
 
-# test_set = []
-# for n in range(num_of_test_images):
-#     image = np.zeros((784, 1))
-#     for i in range(784):
-#         image[i] = int.from_bytes(test_images_file.read(1), 'big') / 256
+test_set = []
+for n in range(num_of_test_images):
+    image = np.zeros((784, 1))
+    for i in range(784):
+        image[i, 0] = int.from_bytes(train_images_file.read(1), 'big') / 256
     
-#     label_value = int.from_bytes(test_labels_file.read(1), 'big')
-#     label = np.zeros((10, 1))
-#     label[label_value, 0] = 1
-    
-#     test_set.append((image, label))
+    label_value = int.from_bytes(train_labels_file.read(1), 'big')
+    label = np.zeros(10)
+    label[label_value] = 1
+
+    test_set.append((image, label))
 
 
-# Plotting an image
-# show_image(train_set[0][0])
-# plt.show()
 
 weights = []
 biases = []
@@ -217,11 +213,13 @@ biases.append(np.zeros(16).reshape(16,1)) #zero bias for layer 2
 biases.append(np.zeros(10).reshape(10,1)) #zero bias for layer 3
 
 learning_rate=1
-number_of_epoches=200
-batch_size=10
+number_of_epoches=5
+batch_size=50
 
 
 train_with_SGD_vectorized(learning_rate,number_of_epoches,batch_size,train_set,weights,biases)
 
-checkaccuracy(train_set,weights,biases,100)
-
+print("Accuracy for train set:")
+checkaccuracy(train_set,weights,biases,num_of_train_images)
+print("Accuracy for test set:")
+checkaccuracy(train_set,weights,biases,num_of_test_images)
