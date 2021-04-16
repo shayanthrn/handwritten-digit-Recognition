@@ -102,7 +102,56 @@ def train_with_SGD(learning_rate,number_of_epoches,batch_size,train_set,weights,
         cost_array.append(cost)
     plt.plot([i for i in range(number_of_epoches)],cost_array)
     plt.show()
-                       
+
+
+def train_with_SGD_vectorized(learning_rate,number_of_epoches,batch_size,train_set,weights,biases):
+    cost_array=[]
+    for ep in range(number_of_epoches):
+        # random.shuffle(train_set)
+        for index in range(0,100,batch_size):
+            batch=train_set[index:index+10]
+            grad_w = []
+            grad_b = []
+            grad_w.append(np.zeros(16*784).reshape(16,784)) #grad weights for layer 1
+            grad_w.append(np.zeros(16*16).reshape(16,16)) #grad weights for layer 2
+            grad_w.append(np.zeros(10*16).reshape(10,16)) #grad weights for layer 3
+            grad_b.append(np.zeros(16).reshape(16,1)) #grad bias for layer 1
+            grad_b.append(np.zeros(16).reshape(16,1)) #grad bias for layer 2
+            grad_b.append(np.zeros(10).reshape(10,1)) #grad bias for layer 3
+            #calculate dervations using vectors
+            for img in batch:
+                nodes=calculate_output(img[0],weights,biases)[1]
+                inputs=img[0]
+                labels=img[1].reshape(10,1)
+                #layer 3
+                grad_w[2]+=((2*(nodes['LO']-labels))*nodes['LO']*(1-nodes['LO']))@np.transpose(nodes['L2'])
+                grad_b[2]+=((2*(nodes['LO']-labels))*nodes['LO']*(1-nodes['LO']))
+                grad_a2=np.transpose(weights[2])@((2*(nodes['LO']-labels))*nodes['LO']*(1-nodes['LO']))
+                #layer 2
+                grad_w[1]+=grad_a2*nodes['L2']*(1-nodes['L2'])@np.transpose(nodes['L1'])
+                grad_b[1]+=grad_a2*nodes['L2']*(1-nodes['L2'])
+                grad_a1=np.transpose(weights[1])@(grad_a2*nodes['L2']*(1-nodes['L2']))
+                #layer 1
+                grad_w[0]+=grad_a1*nodes['L1']*(1-nodes['L1'])@np.transpose(inputs)
+                grad_b[0]+=grad_a1*nodes['L1']*(1-nodes['L1'])
+
+            weights[2]=weights[2]-learning_rate*(grad_w[2]/batch_size)
+            weights[1]=weights[1]-learning_rate*(grad_w[1]/batch_size)
+            weights[0]=weights[0]-learning_rate*(grad_w[0]/batch_size)
+            biases[2]=biases[2]-learning_rate*(grad_b[2]/batch_size)
+            biases[1]=biases[1]-learning_rate*(grad_b[1]/batch_size)
+            biases[0]=biases[0]-learning_rate*(grad_b[0]/batch_size)
+
+        cost=0
+        for img in train_set:
+            nodes=calculate_output(img[0],weights,biases)[1]
+            labels=img[1].reshape(10,1)
+            for j in range(10):
+                cost+=(nodes['LO'][j,0]-labels[j,0])**2
+        cost/=100
+        cost_array.append(cost)
+    plt.plot([i for i in range(number_of_epoches)],cost_array)
+    plt.show()
 
 
 
@@ -160,19 +209,19 @@ for n in range(num_of_train_images):
 
 weights = []
 biases = []
-weights.append(np.matrix(np.random.normal(size=(16,784)))) #random normal weights for layer 1
-weights.append(np.matrix(np.random.normal(size=(16,16)))) #random normal weights for layer 2
-weights.append(np.matrix(np.random.normal(size=(10,16)))) #random normal weights for layer 3
+weights.append(np.random.normal(size=(16,784))) #random normal weights for layer 1
+weights.append(np.random.normal(size=(16,16))) #random normal weights for layer 2
+weights.append(np.random.normal(size=(10,16))) #random normal weights for layer 3
 biases.append(np.zeros(16).reshape(16,1)) #zero bias for layer 1
 biases.append(np.zeros(16).reshape(16,1)) #zero bias for layer 2
 biases.append(np.zeros(10).reshape(10,1)) #zero bias for layer 3
 
 learning_rate=1
-number_of_epoches=20
+number_of_epoches=200
 batch_size=10
 
 
-train_with_SGD(learning_rate,number_of_epoches,batch_size,train_set,weights,biases)
+train_with_SGD_vectorized(learning_rate,number_of_epoches,batch_size,train_set,weights,biases)
 
 checkaccuracy(train_set,weights,biases,100)
 
